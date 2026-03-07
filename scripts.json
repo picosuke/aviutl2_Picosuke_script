@@ -1,0 +1,33 @@
+[
+  {
+    "category": "Distort",
+    "name": "複数魚眼",
+    "file": "#複数魚眼.anm",
+    "description": "図形の中に小さな魚眼レンズがたくさん現れ、うねうねと動き回る歪みエフェクトです。CapCutの拡大/歪みのような質感を出せます。",
+    "params": [
+      "個数 (track0): 1 ～ 20",
+      "サイズ (track1): 0 ～ 1000",
+      "歪み強さ (track2): -100 ～ 100",
+      "速度 (track3): 0 ～ 100",
+      "ランダム配置 (check0): ON/OFF"
+    ]
+  },
+  {
+    "category": "VHS",
+    "name": "VHS Distortion",
+    "file": "#vhs_distortion.anm",
+    "description": "古いビデオテープのノイズ、色ズレ、走査線の乱れを再現します。非常に細かく設定可能です。",
+    "params": [
+      "歪み幅 (track0)",
+      "歪み周期 (track1)",
+      "色ずれ幅 (track2)",
+      "劣化度 (track3)",
+      "スライスズレ (track4)",
+      "グリッチ速度 (track5)",
+      "角度 (track6)",
+      "ノイズ頻度 (dialog: freq)",
+      "ノイズ幅 (dialog: nwidth)",
+      "分割数 (dialog: div)"
+    ]
+  }
+]
