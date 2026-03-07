@@ -7,35 +7,31 @@
     <style>
         body { background-color: #1e1e1e; color: #cccccc; font-family: 'Segoe UI', sans-serif; }
         .sidebar { background-color: #252526; width: 260px; border-right: 1px solid #333; }
-        .content { background-color: #1e1e1e; flex-grow: 1; }
-        .file-item { padding: 4px 20px; font-size: 13px; display: flex; items-center: center; gap: 6px; cursor: pointer; transition: 0.1s; }
+        .content { background-color: #1e1e1e; flex-grow: 1; overflow-y: auto; }
+        .file-item { padding: 4px 20px; font-size: 13px; display: flex; items-center: center; gap: 6px; cursor: pointer; }
         .file-item:hover { background-color: #2a2d2e; }
         .file-item.active { background-color: #37373d; color: white; }
         .folder-header { color: #858585; font-size: 11px; font-weight: bold; padding: 10px 20px 2px; text-transform: uppercase; }
-        .param-badge { background-color: #2d2d2d; border: 1px solid #404040; color: #aaa; }
-        .download-btn { background-color: #0e639c; }
+        .param-badge { background-color: #2d2d2d; border: 1px solid #404040; color: #aaa; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+        .download-btn { background-color: #0e639c; transition: 0.2s; }
         .download-btn:hover { background-color: #1177bb; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <!-- サイドバー -->
     <aside class="sidebar flex flex-col">
         <div class="p-4 text-xs font-bold tracking-widest text-gray-500 border-b border-gray-800">EXPLORER</div>
-        <div id="file-tree" class="flex-grow overflow-y-auto pt-2">
-            <!-- JSで生成 -->
-        </div>
+        <div id="file-tree" class="flex-grow pt-2"></div>
     </aside>
 
-    <!-- メイン表示 -->
-    <main class="content flex flex-col p-10 overflow-y-auto">
-        <div id="welcome" class="flex flex-col items-center justify-center h-full text-gray-600">
-            <p class="text-xl italic">Select a script from the explorer</p>
+    <main class="content p-10">
+        <div id="welcome" class="flex flex-col items-center justify-center h-full text-gray-600 italic">
+            Select a script to see details
         </div>
 
         <div id="detail" class="hidden">
             <div class="flex items-center gap-3 mb-1">
-                <span id="display-cat" class="text-blue-400 text-sm font-mono"></span>
+                <span id="display-cat-ui" class="text-blue-400 text-sm font-mono font-bold"></span>
                 <span class="text-gray-600">/</span>
                 <h1 id="display-name" class="text-3xl font-bold text-white"></h1>
             </div>
@@ -43,25 +39,21 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 <div class="lg:col-span-2">
-                    <h3 class="text-white font-bold mb-4 flex items-center gap-2">
-                        <span class="w-1 h-4 bg-blue-500 inline-block"></span> Description
-                    </h3>
+                    <h3 class="text-white font-bold mb-4">Description</h3>
                     <p id="display-desc" class="text-gray-300 leading-relaxed mb-10"></p>
 
-                    <h3 class="text-white font-bold mb-4 flex items-center gap-2">
-                        <span class="w-1 h-4 bg-blue-500 inline-block"></span> Parameters
-                    </h3>
+                    <h3 class="text-white font-bold mb-4">Parameters</h3>
                     <div id="display-params" class="flex flex-wrap gap-2"></div>
                 </div>
 
-                <div class="flex flex-col">
+                <div>
                     <div class="bg-[#252526] p-6 rounded border border-[#333] text-center">
-                        <p class="text-xs text-gray-400 mb-6 font-bold uppercase tracking-wider">Package Distribution</p>
+                        <p class="text-xs text-gray-400 mb-6 font-bold uppercase">Package Distribution</p>
                         <a id="download-link" href="#" class="download-btn text-white font-bold py-3 px-6 rounded shadow-lg flex items-center justify-center gap-2 w-full mb-3">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                             Download ZIP
                         </a>
-                        <p class="text-[10px] text-gray-500">解凍して .anm ファイルを導入してください</p>
+                        <p class="text-[10px] text-gray-500">AviUtl <code>script/</code> フォルダに導入してください</p>
                     </div>
                 </div>
             </div>
@@ -76,17 +68,23 @@
             scripts = await res.json();
             
             const tree = document.getElementById('file-tree');
-            const cats = [...new Set(scripts.map(s => s.category))];
+            // カテゴリ（フォルダ名）ごとにユニークなリストを作成
+            const uniqueCats = [...new Set(scripts.map(s => s.category))];
 
-            tree.innerHTML = cats.map(cat => `
-                <div class="folder-header">${cat}</div>
-                ${scripts.filter(s => s.category === cat).map(s => `
-                    <div class="file-item" data-file="${s.file}" onclick="selectFile('${s.file}')">
-                        <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9z" clip-rule="evenodd"></path></svg>
-                        ${s.display_name || s.file}
-                    </div>
-                `).join('')}
-            `).join('');
+            tree.innerHTML = uniqueCats.map(catDir => {
+                const firstItem = scripts.find(s => s.category === catDir);
+                const displayLabel = firstItem.category_display || catDir;
+                
+                return `
+                    <div class="folder-header">${displayLabel}</div>
+                    ${scripts.filter(s => s.category === catDir).map(s => `
+                        <div class="file-item" data-file="${s.file}" onclick="selectFile('${s.file}')">
+                            <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9z" clip-rule="evenodd"></path></svg>
+                            ${s.display_name}
+                        </div>
+                    `).join('')}
+                `;
+            }).join('');
         }
 
         function selectFile(file) {
@@ -96,18 +94,18 @@
             document.getElementById('welcome').classList.add('hidden');
             document.getElementById('detail').classList.remove('hidden');
 
-            document.getElementById('display-cat').innerText = s.category;
+            document.getElementById('display-cat-ui').innerText = s.category_display;
             document.getElementById('display-name').innerText = s.name;
             document.getElementById('display-path').innerText = `script/${s.category}/${s.file}`;
             document.getElementById('display-desc').innerText = s.description;
             
             document.getElementById('display-params').innerHTML = s.params.map(p => `
-                <span class="param-badge px-3 py-1 rounded text-xs font-mono">${p}</span>
+                <span class="param-badge font-mono">${p}</span>
             `).join('');
 
             const dl = document.getElementById('download-link');
-            // 特殊文字 (#) を考慮してエンコード
-            dl.href = `script/${encodeURIComponent(s.category)}/${encodeURIComponent(s.file)}`;
+            // カテゴリ（実際のフォルダ名）を使用してパスを作成
+            dl.href = `script/${s.category}/${s.file}`;
             dl.setAttribute('download', s.file);
 
             document.querySelectorAll('.file-item').forEach(el => {
