@@ -1,0 +1,94 @@
+--track0:歪み幅,0,200,50
+--track1:歪み周期,0,100,50
+--track2:色ずれ幅,0,100,50
+--track3:劣化度,0,100,25
+--track4:スライスズレ,0,200,50
+--track5:グリッチ速度,0,100,50
+--track6:角度,-3600.00,3600.00,0
+--dialog:ノイズ頻度,freq=20;ノイズ幅,nwidth=50;分割数,div=10;
+
+local amp = obj.track0
+local wave = obj.track1
+local color = obj.track2
+local degrade = obj.track3
+local s_width = obj.track4
+local speed = obj.track5 / 1000
+local angle = obj.track6
+
+local rad = math.rad(angle)
+local cos = math.cos(rad)
+local sin = math.sin(rad)
+
+local freq_noise = freq or 20
+local nwidth_noise = nwidth or 50
+local div_num = math.max(1, div or 10)
+
+local t = obj.time * speed * 100
+local rand = obj.rand
+
+-- 劣化
+if degrade > 0 then
+    obj.effect("ぼかし","範囲",degrade)
+    obj.effect("色調補正","彩度",100 - degrade * 1.6,"コントラスト",100 + degrade * 0.8)
+end
+
+-- ラスター（全体）
+if amp > 0 then
+    obj.effect("ラスター","横幅", amp,"高さ", wave,"周期", t,"角度", angle)
+end
+
+-- 色ずれ
+if color > 0 then
+    obj.effect("色ずれ","ずれ幅",color,"角度",angle)
+    obj.effect("色ずれ","ずれ幅",color * 0.6,"角度",angle + 180)
+end
+
+-- 分割描画
+if div_num > 1 then
+    -- オブジェクトのサイズを基準にする
+    local w, h = obj.w, obj.h
+    local step = h / div_num
+
+    for i = 0, div_num-1 do
+        -- グリッチ計算
+        local raster = (amp > 0) and (math.sin(i * (wave * 0.2) + t * 0.5) * amp) or 0
+        local slice = (s_width > 0) and rand(-s_width, s_width, i + math.floor(t*2), 0) or 0
+        local noise = (freq_noise > 0 and rand(1,100,math.floor(t*0.8),i) <= freq_noise) and rand(-nwidth_noise, nwidth_noise, math.floor(t*0.8), 0) or 0
+        
+        local shift = raster + slice + noise
+        local dx = shift * cos
+        local dy = shift * sin
+
+        -- ローカル座標（中心原点）
+        local y0 = i * step - h/2
+        local y1 = (i+1) * step - h/2
+        local x0 = -w/2
+        local x1 = w/2
+
+        -- 回転・移動関数
+        local function get_pos(px, py)
+            local rx = px * cos - py * sin
+            local ry = px * sin + py * cos
+            return rx + dx, ry + dy
+        end
+
+        local x1_r, y1_r = get_pos(x0, y0)
+        local x2_r, y2_r = get_pos(x1, y0)
+        local x3_r, y3_r = get_pos(x1, y1)
+        local x4_r, y4_r = get_pos(x0, y1)
+
+        -- UV座標（元の画像の位置を正確に指定）
+        local u0, v0 = 0, i * step
+        local u1, v1 = w, (i+1) * step
+
+        obj.drawpoly(
+            x1_r, y1_r, 0,
+            x2_r, y2_r, 0,
+            x3_r, y3_r, 0,
+            x4_r, y4_r, 0,
+            u0, v0, u1, v0, u1, v1, u0, v1
+        )
+    end
+else
+    obj.draw()
+end
