@@ -114,7 +114,8 @@
             `).join('');
 
             const dlLink = document.getElementById('download-link');
-            dlLink.href = `script/${item.category}/${item.file}`;
+            const encodedFile = encodeURIComponent(item.file);
+            dlLink.href = `script/${item.category}/${encodedFile}`;
             
             // アクティブ表示の切り替え
             document.querySelectorAll('.file-item').forEach(el => {
