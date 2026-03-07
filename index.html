@@ -6,12 +6,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #1e1e1e; color: #cccccc; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { background-color: #252526; width: 260px; border-right: 1px solid #333; }
+        .sidebar { background-color: #252526; width: 260px; border-right: 1px solid #333; flex-shrink: 0; }
         .content { background-color: #1e1e1e; flex-grow: 1; overflow-y: auto; }
-        .file-item { padding: 4px 20px; font-size: 13px; display: flex; items-center: center; gap: 6px; cursor: pointer; }
+        .file-item { padding: 4px 20px; font-size: 13px; display: flex; items-center: center; gap: 6px; cursor: pointer; border-left: 2px solid transparent; }
         .file-item:hover { background-color: #2a2d2e; }
-        .file-item.active { background-color: #37373d; color: white; }
-        .folder-header { color: #858585; font-size: 11px; font-weight: bold; padding: 10px 20px 2px; text-transform: uppercase; }
+        .file-item.active { background-color: #37373d; color: white; border-left: 2px solid #007acc; }
+        .folder-header { color: #858585; font-size: 11px; font-weight: bold; padding: 12px 20px 2px; text-transform: uppercase; }
+        .card { background-color: #252526; border: 1px solid #333; border-radius: 4px; padding: 20px; }
         .param-badge { background-color: #2d2d2d; border: 1px solid #404040; color: #aaa; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
         .download-btn { background-color: #0e639c; transition: 0.2s; }
         .download-btn:hover { background-color: #1177bb; }
@@ -19,17 +20,54 @@
 </head>
 <body class="flex h-screen overflow-hidden">
 
+    <!-- サイドバー -->
     <aside class="sidebar flex flex-col">
         <div class="p-4 text-xs font-bold tracking-widest text-gray-500 border-b border-gray-800">EXPLORER</div>
-        <div id="file-tree" class="flex-grow pt-2"></div>
-    </aside>
-
-    <main class="content p-10">
-        <div id="welcome" class="flex flex-col items-center justify-center h-full text-gray-600 italic">
-            Select a script to see details
+        
+        <!-- HOMEボタン -->
+        <div class="pt-2">
+            <div id="btn-home" class="file-item active" onclick="showHome()">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                HOME / READ ME
+            </div>
         </div>
 
-        <div id="detail" class="hidden">
+        <div id="file-tree" class="flex-grow"></div>
+    </aside>
+
+    <!-- メイン -->
+    <main class="content p-10">
+        
+        <!-- HOME画面 -->
+        <div id="view-home" class="max-w-3xl">
+            <h1 class="text-4xl font-bold text-white mb-4 italic">AviUtl Script Explorer</h1>
+            <p class="text-gray-400 mb-10 italic border-b border-gray-800 pb-4">Welcome to my script distribution site.</p>
+
+            <div class="space-y-8">
+                <section>
+                    <h3 class="text-white font-bold mb-3 flex items-center gap-2">
+                        <span class="w-1 h-4 bg-blue-500"></span> 導入方法
+                    </h3>
+                    <div class="card text-sm text-gray-300 space-y-2">
+                        <p>1. 左側のメニューから好きなスクリプトを選択します。</p>
+                        <p>2. <code class="bg-[#2d2d2d] px-1 rounded text-blue-300 text-xs">Download ZIP</code> ボタンを押してダウンロードします。</p>
+                        <p>3. ZIPを解凍し、中身の <code class="bg-[#2d2d2d] px-1 rounded text-blue-300 text-xs">.anm</code> ファイルをAviUtlの <code class="bg-[#2d2d2d] px-1 rounded text-blue-300 text-xs">script</code> フォルダに入れます。</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="text-white font-bold mb-3 flex items-center gap-2">
+                        <span class="w-1 h-4 bg-yellow-500"></span> 注意事項
+                    </h3>
+                    <div class="card text-sm text-gray-400">
+                        <p>スクリプトは全て Shift_JIS で作成されています。編集する際は文字コードに注意してください。不具合報告などは各SNSまでお願いします。</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- 詳細画面 -->
+        <div id="view-detail" class="hidden">
             <div class="flex items-center gap-3 mb-1">
                 <span id="display-cat-ui" class="text-blue-400 text-sm font-mono font-bold"></span>
                 <span class="text-gray-600">/</span>
@@ -39,10 +77,10 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 <div class="lg:col-span-2">
-                    <h3 class="text-white font-bold mb-4">Description</h3>
-                    <p id="display-desc" class="text-gray-300 leading-relaxed mb-10"></p>
+                    <h3 class="text-white font-bold mb-4 flex items-center gap-2">Description</h3>
+                    <p id="display-desc" class="text-gray-300 leading-relaxed mb-10 p-4 bg-black bg-opacity-20 rounded border border-gray-800"></p>
 
-                    <h3 class="text-white font-bold mb-4">Parameters</h3>
+                    <h3 class="text-white font-bold mb-4 flex items-center gap-2">Parameters</h3>
                     <div id="display-params" class="flex flex-wrap gap-2"></div>
                 </div>
 
@@ -53,7 +91,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                             Download ZIP
                         </a>
-                        <p class="text-[10px] text-gray-500">AviUtl <code>script/</code> フォルダに導入してください</p>
+                        <p class="text-[10px] text-gray-500 italic">File: <span id="display-filename"></span></p>
                     </div>
                 </div>
             </div>
@@ -68,7 +106,6 @@
             scripts = await res.json();
             
             const tree = document.getElementById('file-tree');
-            // カテゴリ（フォルダ名）ごとにユニークなリストを作成
             const uniqueCats = [...new Set(scripts.map(s => s.category))];
 
             tree.innerHTML = uniqueCats.map(catDir => {
@@ -87,30 +124,38 @@
             }).join('');
         }
 
+        function showHome() {
+            document.getElementById('view-home').classList.remove('hidden');
+            document.getElementById('view-detail').classList.add('hidden');
+            document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('btn-home').classList.add('active');
+        }
+
         function selectFile(file) {
             const s = scripts.find(i => i.file === file);
             if (!s) return;
 
-            document.getElementById('welcome').classList.add('hidden');
-            document.getElementById('detail').classList.remove('hidden');
+            document.getElementById('view-home').classList.add('hidden');
+            document.getElementById('view-detail').classList.remove('hidden');
 
             document.getElementById('display-cat-ui').innerText = s.category_display;
             document.getElementById('display-name').innerText = s.name;
             document.getElementById('display-path').innerText = `script/${s.category}/${s.file}`;
             document.getElementById('display-desc').innerText = s.description;
+            document.getElementById('display-filename').innerText = s.file;
             
             document.getElementById('display-params').innerHTML = s.params.map(p => `
                 <span class="param-badge font-mono">${p}</span>
             `).join('');
 
             const dl = document.getElementById('download-link');
-            // カテゴリ（実際のフォルダ名）を使用してパスを作成
-            dl.href = `script/${s.category}/${s.file}`;
+            dl.href = `script/${encodeURIComponent(s.category)}/${encodeURIComponent(s.file)}`;
             dl.setAttribute('download', s.file);
 
             document.querySelectorAll('.file-item').forEach(el => {
                 el.classList.toggle('active', el.getAttribute('data-file') === file);
             });
+            document.getElementById('btn-home').classList.remove('active');
         }
 
         init();
