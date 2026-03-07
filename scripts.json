@@ -1,35 +1,24 @@
 [
   {
-    "category": "歪める",
+    "category": "Distort",
+    "category_display": "歪める",
     "name": "複数魚眼",
     "file": "複数魚眼.zip",
     "display_name": "#複数魚眼.anm",
-    "description": "図形の中に小さな魚眼レンズがたくさん現れ、うねうねと動き回る歪みエフェクトです。CapCutの拡大/歪みのような質感を出せます。",
+    "description": "図形の中に小さな魚眼レンズがうねうね動く、CapCut風の歪みエフェクトです。",
     "params": [
-      "個数 (track0): 1 ～ 20",
-      "サイズ (track1): 0 ～ 1000",
-      "歪み強さ (track2): -100 ～ 100",
-      "速度 (track3): 0 ～ 100",
-      "ランダム配置 (check0): ON/OFF"
+      "個数 (track0)", "サイズ (track1)", "歪み強さ (track2)", "速度 (track3)", "ランダム配置 (check0)"
     ]
   },
   {
     "category": "VHS",
+    "category_display": "VHS",
     "name": "VHS Distortion",
     "file": "VHS_distortion.zip",
     "display_name": "#vhs_distortion.anm",
     "description": "古いビデオテープのノイズ、色ズレ、走査線の乱れを再現します。",
     "params": [
-      "歪み幅 (track0)",
-      "歪み周期 (track1)",
-      "色ずれ幅 (track2)",
-      "劣化度 (track3)",
-      "スライスズレ (track4)",
-      "グリッチ速度 (track5)",
-      "角度 (track6)",
-      "ノイズ頻度 (dialog)",
-      "ノイズ幅 (dialog)",
-      "分割数 (dialog)"
+      "歪み幅 (track0)", "歪み周期 (track1)", "劣化度 (track3)", "ノイズ頻度 (dialog)"
     ]
   }
 ]
