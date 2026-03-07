@@ -1,0 +1,2 @@
+# aviutl2_Picosuke_script
+aviutl2のscriptを公開してます
