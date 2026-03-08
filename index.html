@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>AviUtl Script Explorer</title>
+    <title>AviUtl2 Picosuke Script</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #1e1e1e; color: #cccccc; font-family: 'Segoe UI', sans-serif; }
@@ -19,6 +19,10 @@
         .download-btn { background-color: #0e639c; transition: 0.2s; }
         .download-btn:hover { background-color: #1177bb; }
         .new-badge { background-color: #e51e31; color: white; font-size: 9px; padding: 1px 4px; border-radius: 2px; font-weight: bold; }
+        
+        /* YouTube動画のレスポンシブ対応 */
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 4px; background: #000; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
@@ -27,50 +31,36 @@
     <aside class="sidebar flex flex-col">
         <div class="p-4 text-xs font-bold tracking-widest text-gray-500 border-b border-gray-800">EXPLORER</div>
         
-        <!-- ナビゲーション -->
         <div class="pt-2">
-            <div id="btn-home" class="file-item active" onclick="showHome()">
+            <div id="btn-home" class="nav-item file-item active" onclick="showHome()">
                 <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                 HOME / READ ME
             </div>
-            <!-- onclickをscrollToRecentに変更 -->
-            <div class="file-item" onclick="scrollToRecent()">
+            <div id="btn-recent" class="nav-item file-item" onclick="showRecentPage()">
                 <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 RECENT UPDATES
             </div>
         </div>
 
-        <div id="file-tree" class="flex-grow"></div>
+        <div id="file-tree" class="flex-grow overflow-y-auto"></div>
     </aside>
 
     <!-- メイン -->
     <main class="content p-10">
         
         <!-- HOME画面 -->
-        <div id="view-home" class="max-w-4xl">
+        <div id="view-home" class="max-w-4xl view-section">
             <h1 class="text-4xl font-bold text-white mb-4 italic">AviUtl Script Explorer</h1>
-            <!-- 英語から日本語へ変更 -->
-            <p class="text-gray-400 mb-10 italic border-b border-gray-800 pb-4">AviUtl向けスクリプト配布ページへようこそ。</p>
+            <p class="text-gray-400 mb-10 italic border-b border-gray-800 pb-4">AviUtl2向けスクリプト配布ページ</p>
 
             <div class="space-y-12">
-                <!-- 最近のスクリプトセクション -->
-                <section id="recent-section">
-                    <!-- 英語から日本語へ変更 -->
-                    <h3 class="text-white font-bold mb-4 flex items-center gap-2">
-                        <span class="w-1 h-4 bg-orange-500"></span> 最近の更新
-                    </h3>
-                    <div id="recent-list" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <!-- JSで挿入 -->
-                    </div>
-                </section>
-
                 <section>
                     <h3 class="text-white font-bold mb-3 flex items-center gap-2">
                         <span class="w-1 h-4 bg-blue-500"></span> 導入方法
                     </h3>
                     <div class="card text-sm text-gray-300 space-y-2">
                         <p>1. 左側のメニューから好きなスクリプトを選択します。</p>
-                        <p>2. <code class="bg-[#2d2d2d] px-1 rounded text-blue-300 text-xs">Download ZIP</code> ボタンを押してダウンロードします。</p>
+                        <p>2. 詳細ページの <code class="bg-[#2d2d2d] px-1 rounded text-blue-300 text-xs">Download ZIP</code> ボタンを押してダウンロードします。</p>
                         <p>3. ZIPを解凍し、中身の <code class="bg-[#2d2d2d] px-1 rounded text-blue-300 text-xs">.anm</code> ファイルをAviUtlの <code class="bg-[#2d2d2d] px-1 rounded text-blue-300 text-xs">script</code> フォルダに入れます。</p>
                     </div>
                 </section>
@@ -86,8 +76,16 @@
             </div>
         </div>
 
+        <!-- 最近の更新専用画面 -->
+        <div id="view-recent" class="max-w-4xl view-section hidden">
+            <h1 class="text-3xl font-bold text-white mb-8">最近の更新</h1>
+            <div id="full-recent-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- JSで挿入 -->
+            </div>
+        </div>
+
         <!-- 詳細画面 -->
-        <div id="view-detail" class="hidden">
+        <div id="view-detail" class="view-section hidden">
             <button onclick="showHome()" class="text-xs text-gray-500 hover:text-white mb-4 flex items-center gap-1">
                 ← Back to Home
             </button>
@@ -101,13 +99,21 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 <div class="lg:col-span-2">
                     <h3 class="text-white font-bold mb-4 flex items-center gap-2">Description</h3>
-                    <p id="display-desc" class="text-gray-300 leading-relaxed mb-10 p-4 bg-black bg-opacity-20 rounded border border-gray-800"></p>
+                    <p id="display-desc" class="text-gray-300 leading-relaxed mb-10 p-4 bg-black bg-opacity-20 rounded border border-gray-800 whitespace-pre-wrap"></p>
 
                     <h3 class="text-white font-bold mb-4 flex items-center gap-2">Parameters</h3>
                     <div id="display-params" class="flex flex-wrap gap-2"></div>
                 </div>
 
-                <div>
+                <div class="space-y-6">
+                    <!-- YouTube動画エリア -->
+                    <div id="video-area" class="hidden">
+                        <p class="text-xs text-gray-400 mb-2 font-bold uppercase">Demonstration</p>
+                        <div class="video-container">
+                            <iframe id="youtube-iframe" src="" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                    </div>
+
                     <div class="bg-[#252526] p-6 rounded border border-[#333] text-center">
                         <p class="text-xs text-gray-400 mb-6 font-bold uppercase">Package Distribution</p>
                         <a id="download-link" href="#" class="download-btn text-white font-bold py-3 px-6 rounded shadow-lg flex items-center justify-center gap-2 w-full mb-3">
@@ -128,15 +134,13 @@
             try {
                 const res = await fetch('scripts.json');
                 scripts = await res.json();
+                renderTree();
+                renderRecentPageList();
             } catch (e) {
-                console.error("Failed to load scripts.json");
+                console.error("Failed to load scripts.json", e);
             }
-            
-            renderTree();
-            renderRecent();
         }
 
-        // サイドバーのツリー表示
         function renderTree() {
             const tree = document.getElementById('file-tree');
             const uniqueCats = [...new Set(scripts.map(s => s.category))];
@@ -157,52 +161,47 @@
             }).join('');
         }
 
-        // 最近のスクリプトを表示
-        function renderRecent() {
-            const recentList = document.getElementById('recent-list');
-            
-            const sorted = [...scripts]
-                .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
-                .slice(0, 3);
+        // 「最近の更新」ページ用のリスト作成
+        function renderRecentPageList() {
+            const list = document.getElementById('full-recent-list');
+            const sorted = [...scripts].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
-            recentList.innerHTML = sorted.map(s => `
-                <div class="recent-card p-4 rounded border relative group" onclick="selectFile('${s.file}')">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-[10px] font-mono text-orange-400 font-bold">${s.date || 'Unknown Date'}</span>
-                        <span class="new-badge">NEW</span>
+            list.innerHTML = sorted.map(s => `
+                <div class="recent-card p-5 rounded border relative group" onclick="selectFile('${s.file}')">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs font-mono text-orange-400 font-bold">${s.date || ''}</span>
+                        <span class="new-badge">UPDATED</span>
                     </div>
-                    <div class="text-white font-bold text-sm mb-1 group-hover:text-blue-400 transition-colors">${s.display_name}</div>
-                    <div class="text-gray-500 text-xs truncate">${s.description}</div>
+                    <div class="text-white font-bold text-lg mb-2 group-hover:text-blue-400 transition-colors">${s.display_name}</div>
+                    <div class="text-gray-400 text-sm line-clamp-2">${s.description}</div>
                 </div>
             `).join('');
         }
 
-        function showHome() {
-            document.getElementById('view-home').classList.remove('hidden');
-            document.getElementById('view-detail').classList.add('hidden');
-            document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
-            document.getElementById('btn-home').classList.add('active');
-            document.querySelector('.content').scrollTop = 0;
+        function hideAllViews() {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         }
 
-        // 新しく追加：最近の更新へスクロールする関数
-        function scrollToRecent() {
-            // HOME画面を表示させる
-            showHome();
-            // 画面切り替えが完了したタイミングでスクロールを実行
-            setTimeout(() => {
-                const target = document.getElementById('recent-section');
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
-            }, 50);
+        function showHome() {
+            hideAllViews();
+            document.getElementById('view-home').classList.remove('hidden');
+            document.getElementById('btn-home').classList.add('active');
+            document.querySelectorAll('#file-tree .file-item').forEach(el => el.classList.remove('active'));
+        }
+
+        function showRecentPage() {
+            hideAllViews();
+            document.getElementById('view-recent').classList.remove('hidden');
+            document.getElementById('btn-recent').classList.add('active');
+            document.querySelectorAll('#file-tree .file-item').forEach(el => el.classList.remove('active'));
         }
 
         function selectFile(file) {
             const s = scripts.find(i => i.file === file);
             if (!s) return;
 
-            document.getElementById('view-home').classList.add('hidden');
+            hideAllViews();
             document.getElementById('view-detail').classList.remove('hidden');
 
             document.getElementById('display-cat-ui').innerText = s.category_display;
@@ -211,6 +210,17 @@
             document.getElementById('display-desc').innerText = s.description;
             document.getElementById('display-filename').innerText = s.file;
             
+            // YouTube埋め込み処理
+            const videoArea = document.getElementById('video-area');
+            const iframe = document.getElementById('youtube-iframe');
+            if (s.youtube) {
+                videoArea.classList.remove('hidden');
+                iframe.src = `https://www.youtube.com/embed/${s.youtube}`;
+            } else {
+                videoArea.classList.add('hidden');
+                iframe.src = "";
+            }
+
             document.getElementById('display-params').innerHTML = s.params.map(p => `
                 <span class="param-badge font-mono">${p}</span>
             `).join('');
@@ -219,10 +229,10 @@
             dl.href = `script/${encodeURIComponent(s.category)}/${encodeURIComponent(s.file)}`;
             dl.setAttribute('download', s.file);
 
-            document.querySelectorAll('.file-item').forEach(el => {
+            // サイドバーの選択状態を更新
+            document.querySelectorAll('#file-tree .file-item').forEach(el => {
                 el.classList.toggle('active', el.getAttribute('data-file') === file);
             });
-            document.getElementById('btn-home').classList.remove('active');
             
             document.querySelector('.content').scrollTop = 0;
         }
