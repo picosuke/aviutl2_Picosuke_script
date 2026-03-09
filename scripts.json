@@ -7,7 +7,7 @@
     "display_name": "#複数魚眼.anm",
     "description": "図形の中に小さな魚眼レンズがうねうね動く、CapCut風の歪みエフェクトです。",
     "date": "2025-3-8",
-    "youtube": "",
+    "youtube": "0dlfp9TiGrg",
     "params": [
       "個数 (track0)", "サイズ (track1)", "歪み強さ (track2)", "速度 (track3)", "ランダム配置 (check0)"
     ]
@@ -20,7 +20,7 @@
     "display_name": "#vhs_distortion.anm",
     "description": "古いビデオテープのノイズ、色ズレ、走査線の乱れを再現します。",
     "date": "2025-3-8",
-    "youtube": "",
+    "youtube": "gkbLmtMYHGA",
     "params": [
       "歪み幅 (track0)", "歪み周期 (track1)", "劣化度 (track3)", "ノイズ頻度 (dialog)"
     ]
